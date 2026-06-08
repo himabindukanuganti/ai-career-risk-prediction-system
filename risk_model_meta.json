@@ -1,0 +1,26 @@
+{
+  "trained_at": "2026-04-18T18:29:07.491512+00:00",
+  "n_samples": 261,
+  "n_features": 8,
+  "features": [
+    "routine_task_ratio",
+    "ai_replaceability",
+    "sector_automation",
+    "skill_uniqueness",
+    "education_level",
+    "experience_years_norm",
+    "demand_growth",
+    "remote_work_ratio"
+  ],
+  "metrics": {
+    "cv_accuracy_mean": 0.9809869375907112,
+    "cv_accuracy_std": 0.020669540118579834,
+    "train_accuracy": 1.0,
+    "f1_low": 1.0,
+    "f1_medium": 1.0,
+    "f1_high": 1.0,
+    "f1_critical": 1.0
+  },
+  "model_version": "3.0.0",
+  "algorithm": "XGBoostClassifier"
+}

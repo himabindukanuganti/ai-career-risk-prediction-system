@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CareerAI — Risk & Trend Prediction</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#0d0a1a;--bg2:#130f24;--bg3:#1a1430;--surface:#1e1835;--surface2:#251f3e;
+  --border:#2e2650;--border2:#3d3468;
+  --gold:#d4a847;--gold2:#f0c060;--gold3:#a07830;
+  --purple:#7c5cbf;--purple2:#9b7fd4;--purple3:#4a3580;
+  --text:#f0eaf8;--text2:#b8aed0;--text3:#7a6e99;
+  --green:#4ade80;--red:#f87171;--blue:#60a5fa;--amber:#fbbf24;
+  --radius:12px;--radius-sm:8px;--radius-lg:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
+  background-image:radial-gradient(ellipse at 20% 20%,rgba(124,92,191,0.08) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 80%,rgba(212,168,71,0.05) 0%,transparent 50%)}
+button{cursor:pointer;font-family:inherit}
+a{color:var(--gold);text-decoration:none}
+
+/* Header */
+header{background:rgba(13,10,26,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);
+  padding:0 24px;display:flex;align-items:center;gap:16px;height:56px;position:sticky;top:0;z-index:200}
+.logo{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold);
+  display:flex;align-items:center;gap:8px;white-space:nowrap}
+.logo-badge{background:linear-gradient(135deg,var(--gold3),var(--gold));color:#0d0a1a;
+  font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700;font-family:'DM Sans',sans-serif}
+nav{display:flex;gap:2px;flex:1}
+.nav-btn{padding:6px 12px;border-radius:6px;border:none;font-size:12px;font-weight:500;
+  background:transparent;color:var(--text3);transition:all 0.15s;position:relative}
+.nav-btn:hover,.nav-btn.active{background:var(--surface2);color:var(--gold)}
+.nav-badge{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;
+  background:var(--green);border:1.5px solid var(--bg);display:none}
+.nav-badge.show{display:block}
+#nav-right{margin-left:auto;display:none;align-items:center;gap:10px}
+#nav-username{font-size:12px;color:var(--gold2);font-weight:600}
+.nav-icon-btn{padding:5px 11px;border-radius:6px;border:1px solid var(--border2);background:transparent;
+  color:var(--text3);font-size:12px;cursor:pointer;transition:all 0.15s}
+.nav-icon-btn:hover{border-color:var(--gold3);color:var(--gold)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--text3)}
+.live-dot.on{background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* Progress */
+#gp{position:fixed;top:56px;left:0;right:0;height:2px;z-index:300}
+#gpf{height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--gold));transition:width 0.3s}
+
+/* Layout */
+main{max-width:1080px;margin:0 auto;padding:24px 20px}
+.page{display:none}.page.active{display:block}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px}
+.card-sm{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600}
+.b-gold{background:rgba(212,168,71,0.15);color:var(--gold);border:1px solid rgba(212,168,71,0.3)}
+.b-purple{background:rgba(124,92,191,0.2);color:var(--purple2);border:1px solid rgba(124,92,191,0.3)}
+.b-green{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.b-red{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
+.b-blue{background:rgba(96,165,250,0.12);color:var(--blue);border:1px solid rgba(96,165,250,0.25)}
+.b-amber{background:rgba(251,191,36,0.12);color:var(--amber);border:1px solid rgba(251,191,36,0.25)}
+.b-gray{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border)}
+
+/* Tags */
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;margin:2px}
+.tag-skill{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.25)}
+.tag-gap{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
+.tag-gold{background:rgba(212,168,71,0.15);color:var(--gold);border:1px solid rgba(212,168,71,0.3)}
+.tag-neutral{background:rgba(255,255,255,0.06);color:var(--text2);border:1px solid var(--border)}
+
+/* Grid */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* Stats */
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.stat-val{font-size:22px;font-weight:700;line-height:1.1;color:var(--gold)}
+.stat-lbl{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* Bars */
+.bar-row{margin-bottom:9px}
+.bar-meta{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;color:var(--text2)}
+.bar-track{height:5px;background:var(--bg3);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:4px;transition:width 1.2s ease}
+
+/* Gap score card */
+.gap-score-card{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.gap-score-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.gap-score-title{font-size:13px;font-weight:700;color:var(--text)}
+.gap-score-badge{font-size:22px;font-weight:700}
+.gap-bar-track{height:10px;background:var(--border);border-radius:6px;overflow:hidden;margin:8px 0}
+.gap-bar-fill{height:100%;border-radius:6px;transition:width 1.5s ease}
+.gap-skill-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;
+  border-bottom:1px solid var(--border);font-size:12px}
+.gap-skill-row:last-child{border-bottom:none}
+.gap-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-right:8px}
+
+/* Upload */
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:2.5rem 2rem;
+  text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg3)}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--gold3);background:rgba(212,168,71,0.04)}
+#file-input{display:none}
+
+/* Spinner */
+.spinner{display:inline-block;width:24px;height:24px;border:2px solid var(--border2);
+  border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.prog-track{height:3px;background:var(--bg3);border-radius:3px;overflow:hidden;max-width:280px;margin:10px auto 0}
+.prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--purple),var(--gold));transition:width 0.4s}
+
+/* Risk circle */
+.risk-circle{width:88px;height:88px;border-radius:50%;border:3px solid var(--border2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  flex-shrink:0;transition:border-color 0.5s;background:var(--bg3)}
+.risk-pct{font-size:20px;font-weight:700;line-height:1;color:var(--gold)}
+.risk-lbl{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* Forms */
+.form-group{margin-bottom:13px}
+label{font-size:11px;font-weight:600;display:block;margin-bottom:4px;
+  color:var(--text3);text-transform:uppercase;letter-spacing:0.5px}
+input[type=text],input[type=email],input[type=password],select,textarea{
+  width:100%;padding:9px 12px;border-radius:var(--radius-sm);border:1px solid var(--border2);
+  font-size:13px;outline:none;transition:border-color 0.15s;
+  background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif}
+input:focus,select:focus,textarea:focus{border-color:var(--gold3)}
+select option{background:var(--bg2)}
+select optgroup{background:var(--bg2);color:var(--text3);font-size:11px}
+.btn{padding:9px 18px;border-radius:var(--radius-sm);border:none;font-size:13px;font-weight:600;
+  transition:all 0.15s;display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif}
+.btn-gold{background:linear-gradient(135deg,var(--gold3),var(--gold));color:#0d0a1a}
+.btn-gold:hover{background:linear-gradient(135deg,var(--gold),var(--gold2));transform:translateY(-1px)}
+.btn-purple{background:var(--purple3);color:var(--text);border:1px solid var(--purple)}
+.btn-purple:hover{background:var(--purple)}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-outline:hover{border-color:var(--gold3);color:var(--gold)}
+
+/* Chart */
+.chart-wrap{position:relative;height:210px}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--bg3);padding:7px 11px;text-align:left;font-weight:600;font-size:11px;
+  color:var(--text3);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:0.4px}
+td{padding:8px 11px;border-bottom:1px solid var(--border);color:var(--text2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02);color:var(--text)}
+
+/* Timeline */
+.timeline{border-left:2px solid var(--border2);padding-left:22px;margin-left:6px}
+.timeline-item{margin-bottom:18px;position:relative}
+.timeline-dot{width:11px;height:11px;border-radius:50%;position:absolute;left:-28px;top:3px;border:2px solid var(--bg)}
+
+/* Row */
+.cmp-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;
+  border-bottom:1px solid var(--border);font-size:13px;color:var(--text2)}
+.cmp-row:last-child{border-bottom:none}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,var(--bg3),var(--surface));
+  border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px 28px;margin-bottom:18px;
+  position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;
+  background:radial-gradient(circle,rgba(212,168,71,0.08),transparent 70%);pointer-events:none}
+.hero h1{font-family:'Cinzel',serif;font-size:22px;font-weight:700;margin-bottom:8px;color:var(--text);line-height:1.3}
+.hero h1 span{color:var(--gold)}
+.hero p{font-size:13px;color:var(--text2);max-width:540px;line-height:1.7}
+.hero-btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+/* Module grid */
+.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.mod-card{border-radius:var(--radius);padding:16px;border:1px solid;cursor:pointer;transition:all 0.2s;background:var(--surface)}
+.mod-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3);border-color:var(--gold3)!important}
+.mod-card h3{font-size:13px;font-weight:600;margin-bottom:3px}
+.mod-card p{font-size:11px;line-height:1.4;opacity:0.6}
+
+/* Live indicator */
+.live-ind{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--green)}
+.live-ind .dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+
+/* Empty */
+.empty{text-align:center;padding:36px;color:var(--text3)}
+.empty .icon{font-size:32px;margin-bottom:8px}
+.empty h3{font-size:14px;font-weight:600;margin-bottom:5px;color:var(--text2)}
+
+/* Role card */
+.role-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px}
+.role-card h4{font-size:13px;font-weight:600;margin-bottom:5px;color:var(--text)}
+.feas-bar{height:3px;background:var(--border);border-radius:3px;margin-top:5px;overflow:hidden}
+
+/* Context banner */
+.ctx-banner{background:linear-gradient(135deg,rgba(124,92,191,0.15),rgba(212,168,71,0.1));
+  border:1px solid rgba(212,168,71,0.25);border-radius:var(--radius-sm);padding:10px 14px;
+  margin-bottom:14px;font-size:12px;color:var(--text2);display:none;align-items:center;gap:8px}
+.ctx-banner.show{display:flex}
+.ctx-banner strong{color:var(--gold)}
+.ctx-clear{margin-left:auto;background:transparent;border:none;color:var(--text3);
+  font-size:11px;cursor:pointer;padding:2px 6px;border-radius:4px}
+.ctx-clear:hover{color:var(--red)}
+
+/* Next steps */
+.next-steps{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;margin-top:14px}
+.next-steps h4{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.next-steps-btns{display:flex;gap:8px;flex-wrap:wrap}
+
+/* AUTH */
+#auth-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;
+  justify-content:center;z-index:9999;
+  background-image:radial-gradient(ellipse at 30% 30%,rgba(124,92,191,0.12),transparent 50%),
+    radial-gradient(ellipse at 70% 70%,rgba(212,168,71,0.07),transparent 50%)}
+.auth-box{background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius-lg);
+  padding:36px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,0.5)}
+.auth-logo{font-family:'Cinzel',serif;font-size:19px;font-weight:700;color:var(--gold);
+  margin-bottom:3px;display:flex;align-items:center;gap:8px}
+.auth-logo span{font-family:'DM Sans',sans-serif;background:linear-gradient(135deg,var(--gold3),var(--gold));
+  color:#0d0a1a;font-size:9px;padding:2px 7px;border-radius:20px;font-weight:700}
+.auth-sub{font-size:12px;color:var(--text3);margin-bottom:22px}
+.auth-tabs{display:flex;margin-bottom:20px;background:var(--bg3);border-radius:var(--radius-sm);
+  padding:3px;border:1px solid var(--border)}
+.auth-tab{flex:1;padding:7px;border:none;background:transparent;border-radius:6px;
+  font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.auth-tab.active{background:var(--surface2);color:var(--gold)}
+.auth-field{margin-bottom:13px}
+.auth-field label{font-size:11px;font-weight:600;color:var(--text3);display:block;margin-bottom:4px;
+  text-transform:uppercase;letter-spacing:0.5px}
+.auth-field input{width:100%;padding:10px 13px;border:1px solid var(--border2);border-radius:var(--radius-sm);
+  font-size:14px;outline:none;background:var(--bg3);color:var(--text);font-family:'DM Sans',sans-serif;transition:border-color 0.15s}
+.auth-field input:focus{border-color:var(--gold3)}
+.auth-submit{width:100%;padding:11px;background:linear-gradient(135deg,var(--gold3),var(--gold));
+  color:#0d0a1a;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:700;
+  cursor:pointer;margin-top:4px;transition:all 0.15s;font-family:'DM Sans',sans-serif}
+.auth-submit:hover{background:linear-gradient(135deg,var(--gold),var(--gold2))}
+.auth-err{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--red);
+  border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;margin-bottom:11px;display:none}
+.auth-ok{background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);color:var(--green);
+  border-radius:var(--radius-sm);padding:8px 12px;font-size:12px;margin-bottom:11px;display:none}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-overlay">
+  <div class="auth-box">
+    <div class="auth-logo">CareerAI <span>BETA</span></div>
+    <div class="auth-sub">AI-powered career risk & prediction platform</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchTab('register')">Register</button>
+    </div>
+    <div id="auth-err" class="auth-err"></div>
+    <div id="auth-ok" class="auth-ok"></div>
+    <div id="tab-login">
+      <div class="auth-field"><label>Email</label><input type="email" id="l-email" placeholder="you@example.com"/></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"/></div>
+      <button class="auth-submit" onclick="doLogin()">Sign In →</button>
+      <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--text3)">
+        No account? <a href="#" onclick="switchTab('register');return false">Register free</a>
+      </p>
+    </div>
+    <div id="tab-register" style="display:none">
+      <div class="auth-field"><label>Full Name</label><input type="text" id="r-name" placeholder="Your Name"/></div>
+      <div class="auth-field"><label>Email</label><input type="email" id="r-email" placeholder="you@example.com"/></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="r-pass" placeholder="Min 8 characters"/></div>
+      <button class="auth-submit" onclick="doRegister()">Create Account →</button>
+      <p style="text-align:center;margin-top:12px;font-size:12px;color:var(--text3)">
+        Already registered? <a href="#" onclick="switchTab('login');return false">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">CareerAI <span class="logo-badge">BETA</span></div>
+  <nav>
+    <button class="nav-btn active" onclick="showPage('dashboard')">Dashboard<span class="nav-badge" id="nb-dashboard"></span></button>
+    <button class="nav-btn" onclick="showPage('resume')">Resume Parser<span class="nav-badge" id="nb-resume"></span></button>
+    <button class="nav-btn" onclick="showPage('risk')">Risk Predictor<span class="nav-badge" id="nb-risk"></span></button>
+    <button class="nav-btn" onclick="showPage('trends')">Job Trends<span class="nav-badge" id="nb-trends"></span></button>
+    <button class="nav-btn" onclick="showPage('recommend')">Recommendations<span class="nav-badge" id="nb-recommend"></span></button>
+  </nav>
+  <div id="nav-right">
+    <span id="nav-username"></span>
+    <button class="nav-icon-btn" onclick="doLogout()">Logout</button>
+    <div class="live-dot" id="live-dot"></div>
+    <span id="live-lbl" style="font-size:11px;color:var(--text3)">—</span>
+  </div>
+</header>
+<div id="gp"><div id="gpf"></div></div>
+
+<main>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="page active" id="page-dashboard">
+  <div class="hero">
+    <h1>AI Career Risk & <span>Prediction</span> System</h1>
+    <p>Built for students and professionals. Upload your resume, get instant automation risk scores, skill gap analysis against industry benchmarks, 5-year job forecasts, and personalised upskilling roadmaps.</p>
+    <div class="hero-btns">
+      <button class="btn btn-gold" onclick="showPage('resume')">Upload Resume →</button>
+      <button class="btn btn-outline" onclick="showPage('trends')">Explore Live Trends</button>
+    </div>
+  </div>
+  <div class="card" id="dash-profile-card" style="display:none">
+    <div class="card-title">Your Career Profile <span class="badge b-gold">Saved</span></div>
+    <div id="dash-profile-content"></div>
+  </div>
+  <div class="mod-grid">
+    <div class="mod-card" style="border-color:rgba(96,165,250,0.3)" onclick="showPage('resume')">
+      <h3 style="color:var(--blue)">📄 Resume Parser</h3><p>NLP + O*NET · skill gap vs industry benchmark</p></div>
+    <div class="mod-card" style="border-color:rgba(248,113,113,0.3)" onclick="showPage('risk')">
+      <h3 style="color:var(--red)">⚡ Risk Prediction</h3><p>XGBoost + SHAP · automation exposure scoring</p></div>
+    <div class="mod-card" style="border-color:rgba(212,168,71,0.3)" onclick="showPage('trends')">
+      <h3 style="color:var(--gold)">📈 Job Trends</h3><p>Prophet · ARIMA · live BLS + Adzuna data</p></div>
+    <div class="mod-card" style="border-color:rgba(74,222,128,0.3)" onclick="showPage('recommend')">
+      <h3 style="color:var(--green)">🚀 Recommendations</h3><p>Coursera · GitHub · YouTube · O*NET paths</p></div>
+    <div class="mod-card" style="border-color:rgba(124,92,191,0.4)" onclick="showPage('resume')">
+      <h3 style="color:var(--purple2)">🎯 Skill Gap Analysis</h3><p>Gap score vs industry benchmark for your target role</p></div>
+    <div class="mod-card" style="border-color:rgba(251,191,36,0.3)">
+      <h3 style="color:var(--amber)">🔌 Live APIs</h3><p>BLS · O*NET · Adzuna · Coursera · GitHub</p>
+      <div style="margin-top:6px"><span class="live-ind"><span class="dot"></span>All live</span></div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Top Growing Roles <span class="live-ind"><span class="dot"></span>Live</span></div>
+      <div id="dash-growing"><div style="color:var(--text3);font-size:13px">Loading…</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">At-Risk Roles <span class="badge b-red">Declining</span></div>
+      <div id="dash-declining"></div>
+    </div>
+  </div>
+  <div class="card" id="dash-saved-card" style="display:none">
+    <div class="card-title">Your Saved Analyses</div>
+    <div id="dash-saved-list"></div>
+  </div>
+</div>
+
+<!-- ═══ RESUME PARSER ═══ -->
+<div class="page" id="page-resume">
+  <div class="card">
+    <div class="card-title">Resume Parser <span class="badge b-blue">NLP · O*NET · Industry Benchmark</span></div>
+
+    <!-- Step 1: Fill details -->
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);
+      padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--text3)">
+      💡 Fill in your details below, then upload your resume. The skill gap will be measured against industry standards for your <strong style="color:var(--gold)">Target Role</strong>.
+    </div>
+
+    <div class="g2" style="margin-bottom:12px">
+      <div class="form-group" style="margin:0">
+        <label>Your Name</label>
+        <input type="text" id="inp-name" placeholder="e.g. Ravi Kumar"/>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Current Role / Status ★</label>
+        <select id="inp-role">
+          <optgroup label="── Students ──">
+            <option value="student">Student (General)</option>
+            <option value="engineering student">Engineering Student</option>
+            <option value="computer science student">Computer Science Student</option>
+            <option value="data science student">Data Science Student</option>
+            <option value="mba student">MBA Student</option>
+            <option value="commerce student">Commerce Student</option>
+            <option value="arts & design student">Arts & Design Student</option>
+            <option value="medical student">Medical Student</option>
+            <option value="law student">Law Student</option>
+            <option value="fresh graduate">Fresh Graduate</option>
+          </optgroup>
+          <optgroup label="── Tech & Data ──">
+            <option value="data analyst">Data Analyst</option>
+            <option value="data engineer">Data Engineer</option>
+            <option value="ml engineer">ML Engineer</option>
+            <option value="software engineer">Software Engineer</option>
+            <option value="devops engineer">DevOps Engineer</option>
+            <option value="data scientist">Data Scientist</option>
+            <option value="business analyst">Business Analyst</option>
+            <option value="cloud architect">Cloud Architect</option>
+            <option value="cybersecurity analyst">Cybersecurity Analyst</option>
+            <option value="full stack developer">Full Stack Developer</option>
+            <option value="frontend developer">Frontend Developer</option>
+            <option value="backend developer">Backend Developer</option>
+            <option value="mobile developer">Mobile Developer</option>
+            <option value="ai engineer">AI Engineer</option>
+            <option value="nlp engineer">NLP Engineer</option>
+            <option value="computer vision engineer">Computer Vision Engineer</option>
+            <option value="site reliability engineer">Site Reliability Engineer</option>
+            <option value="qa tester">QA Tester</option>
+            <option value="data entry specialist">Data Entry Specialist</option>
+            <option value="bi developer">BI Developer</option>
+            <option value="salesforce developer">Salesforce Developer</option>
+            <option value="database administrator">Database Administrator</option>
+            <option value="network engineer">Network Engineer</option>
+          </optgroup>
+          <optgroup label="── Business & Finance ──">
+            <option value="product manager">Product Manager</option>
+            <option value="project manager">Project Manager</option>
+            <option value="scrum master">Scrum Master</option>
+            <option value="accountant">Accountant</option>
+            <option value="financial analyst">Financial Analyst</option>
+            <option value="risk analyst">Risk Analyst</option>
+            <option value="compliance officer">Compliance Officer</option>
+            <option value="supply chain analyst">Supply Chain Analyst</option>
+            <option value="hr analyst">HR Analyst</option>
+            <option value="recruiter">Recruiter</option>
+          </optgroup>
+          <optgroup label="── Marketing & Design ──">
+            <option value="digital marketer">Digital Marketer</option>
+            <option value="seo specialist">SEO Specialist</option>
+            <option value="content strategist">Content Strategist</option>
+            <option value="social media manager">Social Media Manager</option>
+            <option value="ux designer">UX Designer</option>
+            <option value="ui designer">UI Designer</option>
+            <option value="graphic designer">Graphic Designer</option>
+          </optgroup>
+          <optgroup label="── Other ──">
+            <option value="customer support">Customer Support</option>
+            <option value="customer success manager">Customer Success Manager</option>
+            <option value="paralegal">Paralegal</option>
+            <option value="medical coder">Medical Coder</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="g2" style="margin-bottom:14px">
+      <div class="form-group" style="margin:0">
+        <label>Years of Experience (0 if student)</label>
+        <input type="text" id="inp-years" placeholder="e.g. 0, 1, 4"/>
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Target Role ★ (skill gap measured against this)</label>
+        <select id="inp-target">
+          <optgroup label="── Entry Level / Student Targets ──">
+            <option value="junior software developer">Junior Software Developer</option>
+            <option value="junior data analyst">Junior Data Analyst</option>
+            <option value="junior data scientist">Junior Data Scientist</option>
+            <option value="junior ml engineer">Junior ML Engineer</option>
+            <option value="junior frontend developer">Junior Frontend Developer</option>
+            <option value="junior backend developer">Junior Backend Developer</option>
+            <option value="junior full stack developer">Junior Full Stack Developer</option>
+            <option value="junior devops engineer">Junior DevOps Engineer</option>
+            <option value="junior ux designer">Junior UX Designer</option>
+            <option value="junior product manager">Junior Product Manager</option>
+            <option value="junior financial analyst">Junior Financial Analyst</option>
+            <option value="junior business analyst">Junior Business Analyst</option>
+            <option value="entry level data analyst">Entry Level Data Analyst</option>
+            <option value="entry level software engineer">Entry Level Software Engineer</option>
+            <option value="graduate trainee">Graduate Trainee</option>
+            <option value="software intern">Software Intern</option>
+            <option value="data intern">Data Intern</option>
+            <option value="research assistant">Research Assistant</option>
+          </optgroup>
+          <optgroup label="── Tech & Data ──">
+            <option value="data analyst">Data Analyst</option>
+            <option value="data engineer">Data Engineer</option>
+            <option value="ml engineer">ML Engineer</option>
+            <option value="software engineer">Software Engineer</option>
+            <option value="devops engineer">DevOps Engineer</option>
+            <option value="data scientist">Data Scientist</option>
+            <option value="business analyst">Business Analyst</option>
+            <option value="cloud architect">Cloud Architect</option>
+            <option value="cybersecurity analyst">Cybersecurity Analyst</option>
+            <option value="full stack developer">Full Stack Developer</option>
+            <option value="frontend developer">Frontend Developer</option>
+            <option value="backend developer">Backend Developer</option>
+            <option value="mobile developer">Mobile Developer</option>
+            <option value="ai engineer">AI Engineer</option>
+            <option value="nlp engineer">NLP Engineer</option>
+            <option value="computer vision engineer">Computer Vision Engineer</option>
+            <option value="site reliability engineer">Site Reliability Engineer</option>
+            <option value="qa tester">QA Tester</option>
+            <option value="bi developer">BI Developer</option>
+            <option value="salesforce developer">Salesforce Developer</option>
+            <option value="tableau developer">Tableau Developer</option>
+            <option value="power bi developer">Power BI Developer</option>
+            <option value="data architect">Data Architect</option>
+            <option value="etl developer">ETL Developer</option>
+          </optgroup>
+          <optgroup label="── Business & Finance ──">
+            <option value="product manager">Product Manager</option>
+            <option value="project manager">Project Manager</option>
+            <option value="scrum master">Scrum Master</option>
+            <option value="accountant">Accountant</option>
+            <option value="financial analyst">Financial Analyst</option>
+            <option value="investment banker">Investment Banker</option>
+            <option value="risk analyst">Risk Analyst</option>
+            <option value="compliance officer">Compliance Officer</option>
+            <option value="actuary">Actuary</option>
+            <option value="supply chain analyst">Supply Chain Analyst</option>
+            <option value="hr analyst">HR Analyst</option>
+            <option value="recruiter">Recruiter</option>
+            <option value="talent acquisition specialist">Talent Acquisition Specialist</option>
+          </optgroup>
+          <optgroup label="── Marketing & Design ──">
+            <option value="digital marketer">Digital Marketer</option>
+            <option value="seo specialist">SEO Specialist</option>
+            <option value="content strategist">Content Strategist</option>
+            <option value="social media manager">Social Media Manager</option>
+            <option value="growth hacker">Growth Hacker</option>
+            <option value="performance marketer">Performance Marketer</option>
+            <option value="brand manager">Brand Manager</option>
+            <option value="ux designer">UX Designer</option>
+            <option value="ui designer">UI Designer</option>
+            <option value="graphic designer">Graphic Designer</option>
+            <option value="product designer">Product Designer</option>
+            <option value="motion designer">Motion Designer</option>
+          </optgroup>
+          <optgroup label="── Healthcare & Legal ──">
+            <option value="health informatics analyst">Health Informatics Analyst</option>
+            <option value="clinical data analyst">Clinical Data Analyst</option>
+            <option value="medical coder">Medical Coder</option>
+            <option value="paralegal">Paralegal</option>
+            <option value="legal analyst">Legal Analyst</option>
+          </optgroup>
+          <optgroup label="── Other ──">
+            <option value="customer success manager">Customer Success Manager</option>
+            <option value="technical support">Technical Support</option>
+            <option value="operations manager">Operations Manager</option>
+            <option value="logistics coordinator">Logistics Coordinator</option>
+            <option value="sales analyst">Sales Analyst</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="upload-zone" id="upload-zone"
+         onclick="document.getElementById('file-input').click()"
+         ondragover="event.preventDefault();this.classList.add('dragover')"
+         ondragleave="this.classList.remove('dragover')"
+         ondrop="handleDrop(event)">
+      <div style="font-size:36px;margin-bottom:10px">📄</div>
+      <h3 style="color:var(--text2);font-size:14px">Drag & drop or click to upload resume</h3>
+      <p id="upload-hint" style="color:var(--text3);margin-top:5px;font-size:12px">PDF, DOCX, TXT — max 5 MB</p>
+    </div>
+    <input type="file" id="file-input" accept=".pdf,.docx,.doc,.txt" onchange="onFileSelect(event)"/>
+    <div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="doParse()">▶ Parse Resume</button>
+      <span style="font-size:12px;color:var(--text3)">Skills are matched against industry standards for your target role</span>
+    </div>
+  </div>
+
+  <div id="parse-loading" style="display:none">
+    <div class="card" style="text-align:center;padding:28px">
+      <div class="spinner" style="margin:0 auto 12px"></div>
+      <div id="parse-msg" style="font-size:13px;font-weight:500;color:var(--text2)">Extracting text…</div>
+      <div class="prog-track"><div class="prog-fill" id="parse-bar" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div id="parse-result" style="display:none">
+
+    <!-- ═══ SKILL GAP SCORE CARD ═══ -->
+    <div class="gap-score-card" id="gap-score-card">
+      <div class="gap-score-header">
+        <div>
+          <div class="gap-score-title" id="gap-score-title">Skill Gap vs Industry Standard</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px" id="gap-score-sub"></div>
+        </div>
+        <div style="text-align:right">
+          <div class="gap-score-badge" id="gap-score-num">—</div>
+          <div style="font-size:11px;color:var(--text3)">skills missing</div>
+        </div>
+      </div>
+      <!-- Progress bar: match % -->
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px">
+        <span>Match Score</span><span id="gap-match-pct">0%</span>
+      </div>
+      <div class="gap-bar-track">
+        <div class="gap-bar-fill" id="gap-bar-fill" style="width:0%"></div>
+      </div>
+      <!-- Skill rows -->
+      <div id="gap-skill-rows" style="margin-top:12px"></div>
+    </div>
+
+    <div style="font-size:13px;color:var(--text3);margin-bottom:8px">
+      Parsed: <strong id="r-name" style="color:var(--gold)"></strong>
+    </div>
+    <div class="g4" style="margin-bottom:14px">
+      <div class="stat-card"><div class="stat-val" id="r-skills-count">0</div><div class="stat-lbl">Skills detected</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--purple2)" id="r-years-val">0</div><div class="stat-lbl">Years exp</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--green)" id="r-conf-val">0%</div><div class="stat-lbl">Parse confidence</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--red)" id="r-gaps-count">0</div><div class="stat-lbl">Skill gaps</div></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-title">✅ Skills You Have</div>
+        <div id="r-skills-tags"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Proficiency Levels</div>
+        <div id="r-bars"></div>
+      </div>
+    </div>
+
+    <!-- Next Steps Panel -->
+    <div class="next-steps" id="resume-next">
+      <h4>⚡ What to do next</h4>
+      <div class="next-steps-btns">
+        <button class="btn btn-gold" onclick="goToRisk()">→ Check Automation Risk</button>
+        <button class="btn btn-purple" onclick="goToRecommend()">→ Get Upskilling Roadmap</button>
+        <button class="btn btn-outline" onclick="goToTrends()">→ View Trends for my Role</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RISK ═══ -->
+<div class="page" id="page-risk">
+  <div class="ctx-banner" id="risk-ctx">
+    <span>📄 Auto-filled from resume: <strong id="risk-ctx-text"></strong></span>
+    <button class="ctx-clear" onclick="document.getElementById('risk-ctx').classList.remove('show')">✕</button>
+  </div>
+  <div class="g2" style="align-items:start">
+    <div>
+      <div class="card">
+        <div class="card-title">Risk Predictor <span class="badge b-red">XGBoost · SHAP</span></div>
+        <div class="form-group"><label>Job Role</label><select id="risk-role"></select></div>
+        <div class="form-group"><label>Years of Experience</label><input type="text" id="risk-years" value="0"/></div>
+        <div class="form-group"><label>Education Level</label>
+          <select id="risk-edu">
+            <option value="0.1">Currently Studying</option>
+            <option value="0.25">Diploma</option>
+            <option value="0.5" selected>Bachelor's</option>
+            <option value="0.75">Master's</option>
+            <option value="1.0">PhD</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Number of Skills on Resume</label><input type="text" id="risk-skills" value="5"/></div>
+        <button class="btn btn-gold" style="width:100%" onclick="predictRisk()">▶ Predict Risk</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Automation Index — All Roles</div>
+        <table><thead><tr><th>Role</th><th>Risk %</th><th>Category</th></tr></thead>
+        <tbody id="auto-tbody"></tbody></table>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">Risk Assessment</div>
+        <div id="risk-empty" class="empty"><div class="icon">🎯</div><h3>Fill the form and click Predict</h3></div>
+        <div id="risk-out" style="display:none">
+          <div id="risk-source" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
+          <div style="display:flex;gap:18px;align-items:center;margin-bottom:18px">
+            <div class="risk-circle" id="risk-circle">
+              <div class="risk-pct" id="risk-pct">—</div>
+              <div class="risk-lbl">risk</div>
+            </div>
+            <div>
+              <div style="font-size:20px;font-weight:700" id="risk-cat">—</div>
+              <div style="font-size:12px;color:var(--text3);margin:3px 0">Automation Risk Category</div>
+              <div style="font-size:13px;color:var(--text2)">Viability: <strong id="risk-viab" style="color:var(--gold)">—</strong>/100</div>
+            </div>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:7px;text-transform:uppercase;letter-spacing:0.5px">SHAP Feature Importance</div>
+          <div id="shap-bars"></div>
+          <div class="g2" style="margin-top:14px">
+            <div><div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:5px;text-transform:uppercase">Risk Factors</div><div id="risk-factors"></div></div>
+            <div><div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:5px;text-transform:uppercase">Protective</div><div id="protect-factors"></div></div>
+          </div>
+          <div class="next-steps" style="margin-top:14px">
+            <h4>⚡ Next Steps</h4>
+            <div class="next-steps-btns">
+              <button class="btn btn-gold" onclick="goToRecommendFromRisk()">→ Get Upskilling Roadmap</button>
+              <button class="btn btn-outline" onclick="goToTrendsFromRisk()">→ See Job Trends</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TRENDS ═══ -->
+<div class="page" id="page-trends">
+  <div class="ctx-banner" id="trends-ctx">
+    <span>🔗 Showing trends for: <strong id="trends-ctx-text"></strong></span>
+    <button class="ctx-clear" onclick="document.getElementById('trends-ctx').classList.remove('show')">✕</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Job Trend Forecaster <span class="badge b-amber">Prophet · ARIMA</span> <span class="live-ind"><span class="dot"></span>Live</span></div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+      <div class="form-group" style="margin:0;flex:1;min-width:180px"><label>Select Role</label><select id="trend-role" onchange="loadTrend()"></select></div>
+      <button class="btn btn-gold" onclick="loadTrend()">▶ Forecast</button>
+    </div>
+  </div>
+  <div class="g4" id="trend-stats" style="margin-bottom:14px"></div>
+  <div id="trend-source" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
+  <div class="g2">
+    <div class="card"><div class="card-title">5-Year Demand Forecast</div><div class="chart-wrap"><canvas id="trend-chart"></canvas></div></div>
+    <div class="card"><div class="card-title">Salary Projection (INR)</div><div class="chart-wrap"><canvas id="salary-chart"></canvas></div></div>
+  </div>
+  <div class="card"><div class="card-title">Forecast Summary</div><p id="trend-summary" style="font-size:13px;line-height:1.7;color:var(--text2)"></p></div>
+  <div class="next-steps">
+    <h4>⚡ Next Steps</h4>
+    <div class="next-steps-btns">
+      <button class="btn btn-gold" onclick="goToRiskFromTrends()">→ Check Risk for this Role</button>
+      <button class="btn btn-purple" onclick="goToRecommendFromTrends()">→ Get Roadmap for this Role</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ RECOMMEND ═══ -->
+<div class="page" id="page-recommend">
+  <div class="ctx-banner" id="rec-ctx">
+    <span>🔗 Pre-filled from: <strong id="rec-ctx-text"></strong></span>
+    <button class="ctx-clear" onclick="document.getElementById('rec-ctx').classList.remove('show')">✕</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Upskilling Roadmap Generator <span class="badge b-purple">Coursera · GitHub · O*NET · BLS</span></div>
+    <div class="g2" style="margin-bottom:12px">
+      <div class="form-group" style="margin:0"><label>Current Role / Status</label><select id="rec-current"></select></div>
+      <div class="form-group" style="margin:0"><label>Target Role</label><select id="rec-target"></select></div>
+    </div>
+    <div class="form-group">
+      <label>Skill Gaps to Address (auto-filled from resume, or type your own)</label>
+      <input type="text" id="rec-gaps" placeholder="e.g. Python, SQL, Machine Learning, Docker"/>
+    </div>
+    <button class="btn btn-gold" onclick="generateRoadmap()">▶ Generate Roadmap</button>
+  </div>
+  <div id="roadmap-out" style="display:none">
+    <div class="g4" id="rec-stats" style="margin-bottom:14px"></div>
+    <div class="g2">
+      <div class="card"><div class="card-title">Phased Learning Roadmap</div><div class="timeline" id="roadmap-phases"></div></div>
+      <div class="card">
+        <div class="card-title">Salary Trajectory <span class="badge b-gold">BLS Live</span></div>
+        <div class="chart-wrap" style="height:170px"><canvas id="sal-chart"></canvas></div>
+        <div style="margin-top:10px" id="sal-stages"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recommended Courses & Videos</div>
+      <table><thead><tr><th>Title</th><th>Platform</th><th>Type</th><th>Hours</th><th>Salary Lift</th><th>Phase</th></tr></thead>
+      <tbody id="course-tbody"></tbody></table>
+    </div>
+    <div class="g2">
+      <div class="card"><div class="card-title">Certifications <span class="badge b-gold">Coursera Live</span></div><div id="certs-list"></div></div>
+      <div class="card"><div class="card-title">Pivot Roles <span class="badge b-purple">O*NET</span></div><div id="pivot-list"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Trending GitHub Repos <span class="badge b-gray">Free API</span></div>
+      <div id="github-list"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+<script src="live_connect.js"></script>
+<script>
+const API = '';
+
+// ═══════════════════════════════════════════════════════
+// SHARED STATE — single source of truth across all pages
+// ═══════════════════════════════════════════════════════
+const STATE = {
+  user: null,
+  resume: null,       // full parsed resume data
+  riskResult: null,   // last risk prediction
+  riskRole: null,     // role used for last risk
+  trendsRole: null,   // role shown in trends
+};
+
+// Industry benchmark skills per role (used for gap scoring)
+const INDUSTRY_BENCH = {
+  // Entry level / student targets
+  "junior software developer":    ["python","javascript","git","sql","html","css"],
+  "junior data analyst":          ["sql","excel","python","tableau","statistics"],
+  "junior data scientist":        ["python","sql","machine learning","statistics","pandas"],
+  "junior ml engineer":           ["python","machine learning","tensorflow","sql","git"],
+  "junior frontend developer":    ["javascript","react","html","css","git"],
+  "junior backend developer":     ["python","sql","git","docker","fastapi"],
+  "junior full stack developer":  ["javascript","react","node.js","sql","git"],
+  "junior devops engineer":       ["docker","git","linux","aws","ci/cd"],
+  "junior ux designer":           ["figma","adobe xd","communication","sketch"],
+  "junior product manager":       ["agile","jira","excel","communication"],
+  "junior financial analyst":     ["excel","sql","statistics","communication"],
+  "junior business analyst":      ["sql","excel","agile","communication","jira"],
+  "entry level data analyst":     ["sql","excel","python","communication"],
+  "entry level software engineer":["python","javascript","git","sql"],
+  "graduate trainee":             ["communication","excel","agile","sql"],
+  "software intern":              ["python","javascript","git","html"],
+  "data intern":                  ["python","sql","excel","statistics"],
+  "research assistant":           ["python","r","statistics","excel","communication"],
+  // Tech roles
+  "data analyst":         ["sql","python","tableau","excel","statistics","power bi"],
+  "data engineer":        ["python","sql","spark","kafka","airflow","dbt","aws","docker"],
+  "ml engineer":          ["python","machine learning","deep learning","tensorflow","pytorch","docker","kubernetes"],
+  "software engineer":    ["python","java","sql","git","docker"],
+  "devops engineer":      ["kubernetes","docker","terraform","aws","ci/cd","ansible"],
+  "qa tester":            ["python","selenium","pytest","ci/cd","git"],
+  "data scientist":       ["python","machine learning","statistics","sql","tensorflow","r"],
+  "business analyst":     ["sql","excel","tableau","agile","communication","jira"],
+  "cloud architect":      ["aws","azure","gcp","terraform","kubernetes","docker"],
+  "cybersecurity analyst":["python","linux","networking","security","aws"],
+  "full stack developer": ["javascript","react","node.js","sql","docker","git"],
+  "frontend developer":   ["javascript","react","typescript","figma","git"],
+  "backend developer":    ["python","java","sql","docker","git","fastapi"],
+  "mobile developer":     ["javascript","react","typescript","git","aws"],
+  "ai engineer":          ["python","machine learning","llm","langchain","docker","aws"],
+  "nlp engineer":         ["python","nlp","pytorch","tensorflow","sql","git"],
+  "computer vision engineer":["python","deep learning","pytorch","tensorflow","docker"],
+  "site reliability engineer":["kubernetes","docker","terraform","aws","python","ci/cd"],
+  "bi developer":         ["sql","power bi","tableau","python","excel"],
+  "salesforce developer": ["salesforce","sql","javascript","git"],
+  "tableau developer":    ["tableau","sql","python","excel"],
+  "power bi developer":   ["power bi","sql","python","excel"],
+  "data architect":       ["sql","python","spark","aws","docker"],
+  "etl developer":        ["python","sql","airflow","spark","docker"],
+  "database administrator":["sql","postgresql","mongodb","python","linux"],
+  "network engineer":     ["networking","linux","python","security","aws"],
+  // Business
+  "product manager":      ["agile","scrum","jira","sql","communication","excel"],
+  "project manager":      ["agile","jira","excel","communication","leadership"],
+  "scrum master":         ["agile","scrum","jira","confluence","communication"],
+  "accountant":           ["excel","sql","statistics","communication"],
+  "financial analyst":    ["excel","sql","python","statistics","communication"],
+  "investment banker":    ["excel","sql","statistics","communication","leadership"],
+  "risk analyst":         ["excel","sql","statistics","python","communication"],
+  "compliance officer":   ["excel","sql","communication","leadership"],
+  "supply chain analyst": ["excel","sql","python","statistics"],
+  "hr analyst":           ["excel","sql","communication","leadership"],
+  "recruiter":            ["excel","communication","leadership","jira"],
+  "talent acquisition specialist":["excel","communication","leadership"],
+  // Marketing & Design
+  "digital marketer":     ["excel","sql","communication"],
+  "seo specialist":       ["sql","excel","python","communication"],
+  "content strategist":   ["communication","excel","sql"],
+  "social media manager": ["communication","excel","figma"],
+  "growth hacker":        ["python","sql","excel","communication"],
+  "performance marketer": ["sql","excel","python","communication"],
+  "brand manager":        ["communication","excel","leadership"],
+  "ux designer":          ["figma","sketch","adobe xd","communication"],
+  "ui designer":          ["figma","adobe xd","javascript","css"],
+  "graphic designer":     ["photoshop","figma","illustrator","adobe xd"],
+  "product designer":     ["figma","sketch","adobe xd","communication"],
+  "motion designer":      ["adobe xd","photoshop","illustrator"],
+  // Other
+  "customer success manager":["communication","excel","salesforce","sql"],
+  "technical support":    ["communication","linux","sql"],
+  "operations manager":   ["excel","sql","communication","leadership"],
+  "logistics coordinator":["excel","sql","communication"],
+  "sales analyst":        ["excel","sql","communication","salesforce"],
+  "paralegal":            ["communication","excel","sql"],
+  "legal analyst":        ["communication","excel","sql"],
+  "medical coder":        ["excel","sql","communication"],
+  "health informatics analyst":["sql","excel","python","statistics"],
+  "clinical data analyst":["sql","excel","python","statistics"],
+};
+
+// ═══ Skill gap scoring function ═══
+function computeGapScore(detectedSkills, targetRole) {
+  const bench = INDUSTRY_BENCH[targetRole.toLowerCase()] ||
+                INDUSTRY_BENCH[targetRole.toLowerCase().replace('junior ','').replace('entry level ','')] || [];
+  if (bench.length === 0) return null;
+
+  const haveSet = new Set(detectedSkills.map(s => (s.name || s).toLowerCase()));
+  const matched = bench.filter(s => haveSet.has(s.toLowerCase()));
+  const missing = bench.filter(s => !haveSet.has(s.toLowerCase()));
+  const pct = Math.round((matched.length / bench.length) * 100);
+
+  return { bench, matched, missing, pct, total: bench.length };
+}
+
+// ═══ Render gap score card ═══
+function renderGapScore(gap, targetRole) {
+  if (!gap) {
+    document.getElementById('gap-score-card').style.display = 'none';
+    return;
+  }
+  document.getElementById('gap-score-card').style.display = 'block';
+  document.getElementById('gap-score-title').textContent =
+    `Skill Gap vs Industry Standard: ${cap(targetRole)}`;
+  document.getElementById('gap-score-sub').textContent =
+    `${gap.matched.length} of ${gap.total} required skills found · ${gap.missing.length} missing`;
+  document.getElementById('gap-score-num').textContent =
+    `${gap.missing.length}/${gap.total}`;
+  document.getElementById('gap-score-num').style.color =
+    gap.pct >= 75 ? 'var(--green)' : gap.pct >= 40 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('gap-match-pct').textContent = gap.pct + '%';
+  const barColor = gap.pct >= 75 ? 'var(--green)' : gap.pct >= 40 ?
+    'linear-gradient(90deg,var(--red),var(--amber))' : 'var(--red)';
+  document.getElementById('gap-bar-fill').style.width = gap.pct + '%';
+  document.getElementById('gap-bar-fill').style.background = barColor;
+
+  // Skill rows
+  const rows = [
+    ...gap.matched.map(s => ({ skill: s, have: true })),
+    ...gap.missing.map(s => ({ skill: s, have: false })),
+  ];
+  document.getElementById('gap-skill-rows').innerHTML = rows.map(r => `
+    <div class="gap-skill-row">
+      <div style="display:flex;align-items:center">
+        <div class="gap-dot" style="background:${r.have ? 'var(--green)' : 'var(--red)'}"></div>
+        <span style="color:${r.have ? 'var(--text)' : 'var(--text3)'}">${cap(r.skill)}</span>
+      </div>
+      <span class="badge ${r.have ? 'b-green' : 'b-red'}">${r.have ? '✓ Have it' : '✗ Missing'}</span>
+    </div>`).join('');
+}
+
+// ═══ Set shared state after parse ═══
+function setResumeState(d) {
+  STATE.resume = d;
+  document.getElementById('nb-resume').classList.add('show');
+  prefillRisk(d);
+  prefillRecommend(d);
+}
+
+// ═══ CRITICAL FIX: Prefill Risk from exact form values ═══
+function prefillRisk(d) {
+  if (!d) return;
+
+  // Use role directly from inp-role select value
+  const roleVal = d._inp_role;  // saved from select at parse time
+  const yearsVal = d._inp_years;
+  const skillCount = d.skill_count || (d.skills ? d.skills.length : 0);
+
+  // Set risk-role select
+  const rSel = document.getElementById('risk-role');
+  if (rSel && roleVal) {
+    // Try exact match first
+    let found = Array.from(rSel.options).find(o => o.value === roleVal);
+    // Try target role if current is student
+    if (!found && d._inp_target) {
+      found = Array.from(rSel.options).find(o => o.value === d._inp_target);
+      if (found) rSel.value = d._inp_target;
+    } else if (found) {
+      rSel.value = roleVal;
+    }
+  }
+
+  // Set years
+  const yEl = document.getElementById('risk-years');
+  if (yEl) yEl.value = yearsVal || d.years || 0;
+
+  // Set skills count
+  const skEl = document.getElementById('risk-skills');
+  if (skEl) skEl.value = skillCount || 5;
+
+  // Show context banner
+  const ctx = document.getElementById('risk-ctx');
+  const ctxTxt = document.getElementById('risk-ctx-text');
+  if (ctx && ctxTxt) {
+    const displayRole = d._inp_target || d._inp_role || 'your role';
+    ctxTxt.textContent = `${d.name || 'Resume'} · Target: ${cap(displayRole)} · ${yearsVal || d.years || 0} yrs exp · ${skillCount} skills`;
+    ctx.classList.add('show');
+  }
+}
+
+// ═══ Prefill Recommend from parsed data ═══
+function prefillRecommend(d) {
+  if (!d) return;
+
+  const curRole = d._inp_role || '';
+  const tgtRole = d._inp_target || '';
+  const gaps = d.skill_gaps || [];
+
+  // Set selects
+  const cSel = document.getElementById('rec-current');
+  const tSel = document.getElementById('rec-target');
+  if (cSel && curRole) {
+    const opt = Array.from(cSel.options).find(o => o.value === curRole);
+    if (opt) cSel.value = curRole;
+  }
+  if (tSel && tgtRole) {
+    const opt = Array.from(tSel.options).find(o => o.value === tgtRole);
+    if (opt) tSel.value = tgtRole;
+  }
+
+  // Set gaps
+  const gEl = document.getElementById('rec-gaps');
+  if (gEl && gaps.length > 0) {
+    gEl.value = gaps.slice(0, 8).join(', ');
+  }
+
+  // Show context banner
+  const ctx = document.getElementById('rec-ctx');
+  const ctxTxt = document.getElementById('rec-ctx-text');
+  if (ctx && ctxTxt) {
+    ctxTxt.textContent = `resume · ${cap(curRole)} → ${cap(tgtRole)}`;
+    ctx.classList.add('show');
+  }
+}
+
+// ═══ Navigation helpers ═══
+function goToRisk() {
+  if (STATE.resume) prefillRisk(STATE.resume);
+  showPage('risk');
+  setTimeout(predictRisk, 400);
+}
+
+function goToRecommend() {
+  if (STATE.resume) prefillRecommend(STATE.resume);
+  showPage('recommend');
+}
+
+function goToTrends() {
+  const role = STATE.resume?._inp_target || STATE.resume?._inp_role || '';
+  setTrendsRole(role);
+  showPage('trends');
+  loadTrend();
+}
+
+function goToRecommendFromRisk() {
+  if (STATE.riskRole) {
+    const sel = document.getElementById('rec-current');
+    const opt = sel && Array.from(sel.options).find(o => o.value === STATE.riskRole);
+    if (opt) sel.value = STATE.riskRole;
+    const ctx = document.getElementById('rec-ctx');
+    const ctxTxt = document.getElementById('rec-ctx-text');
+    if (ctx && ctxTxt) { ctxTxt.textContent = `risk result · ${cap(STATE.riskRole)}`; ctx.classList.add('show'); }
+  }
+  showPage('recommend');
+}
+
+function goToTrendsFromRisk() {
+  setTrendsRole(STATE.riskRole || '');
+  showPage('trends');
+  loadTrend();
+}
+
+function goToRiskFromTrends() {
+  if (STATE.trendsRole) {
+    const sel = document.getElementById('risk-role');
+    const opt = sel && Array.from(sel.options).find(o => o.value === STATE.trendsRole);
+    if (opt) sel.value = STATE.trendsRole;
+  }
+  showPage('risk');
+  setTimeout(predictRisk, 300);
+}
+
+function goToRecommendFromTrends() {
+  if (STATE.trendsRole) {
+    const sel = document.getElementById('rec-current');
+    const opt = sel && Array.from(sel.options).find(o => o.value === STATE.trendsRole);
+    if (opt) sel.value = STATE.trendsRole;
+    const ctx = document.getElementById('rec-ctx');
+    const ctxTxt = document.getElementById('rec-ctx-text');
+    if (ctx && ctxTxt) { ctxTxt.textContent = `trends · ${cap(STATE.trendsRole)}`; ctx.classList.add('show'); }
+  }
+  showPage('recommend');
+}
+
+function setTrendsRole(role) {
+  if (!role) return;
+  STATE.trendsRole = role.toLowerCase();
+  const sel = document.getElementById('trend-role');
+  const opt = sel && Array.from(sel.options).find(o => o.value === role.toLowerCase());
+  if (opt) {
+    sel.value = role.toLowerCase();
+    const ctx = document.getElementById('trends-ctx');
+    const ctxTxt = document.getElementById('trends-ctx-text');
+    if (ctx && ctxTxt) { ctxTxt.textContent = cap(role); ctx.classList.add('show'); }
+  }
+}
+
+function goTrendsForRole(role) {
+  setTrendsRole(role);
+  showPage('trends');
+  loadTrend();
+}
+
+function quickRisk(role) {
+  const sel = document.getElementById('risk-role');
+  const opt = sel && Array.from(sel.options).find(o => o.value === role.toLowerCase());
+  if (opt) sel.value = role.toLowerCase();
+  showPage('risk');
+  setTimeout(predictRisk, 300);
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function authHeaders() {
+  const t = localStorage.getItem('access_token');
+  return t ? { Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+}
+async function apiFetch(url, opts = {}) {
+  try {
+    const r = await fetch(API + url, { ...opts, headers: { ...authHeaders(), ...(opts.headers || {}) } });
+    if (r.status === 401) { doLogout(); return null; }
+    return r;
+  } catch(e) { return null; }
+}
+function cap(s) { return s ? s.replace(/\b\w/g, c => c.toUpperCase()) : ''; }
+function fmtNum(n) { return n >= 1000 ? Math.round(n / 100) / 10 + 'k' : (n || 0); }
+function prog(pct) {
+  document.getElementById('gpf').style.width = pct + '%';
+  if (pct >= 100) setTimeout(() => document.getElementById('gpf').style.width = '0%', 600);
+}
+
+// ═══ Populate all role dropdowns ═══
+let ALL_ROLES = [];
+
+// Current role options (with student optgroups)
+const CURRENT_ROLE_HTML = `
+  <optgroup label="── Students ──">
+    <option value="student">Student (General)</option>
+    <option value="engineering student">Engineering Student</option>
+    <option value="computer science student">Computer Science Student</option>
+    <option value="data science student">Data Science Student</option>
+    <option value="mba student">MBA Student</option>
+    <option value="commerce student">Commerce Student</option>
+    <option value="arts & design student">Arts & Design Student</option>
+    <option value="medical student">Medical Student</option>
+    <option value="law student">Law Student</option>
+    <option value="fresh graduate">Fresh Graduate</option>
+  </optgroup>
+  <optgroup label="── Tech & Data ──">
+    <option value="data analyst">Data Analyst</option>
+    <option value="data engineer">Data Engineer</option>
+    <option value="ml engineer">ML Engineer</option>
+    <option value="software engineer">Software Engineer</option>
+    <option value="devops engineer">DevOps Engineer</option>
+    <option value="data scientist">Data Scientist</option>
+    <option value="business analyst">Business Analyst</option>
+    <option value="cloud architect">Cloud Architect</option>
+    <option value="cybersecurity analyst">Cybersecurity Analyst</option>
+    <option value="full stack developer">Full Stack Developer</option>
+    <option value="frontend developer">Frontend Developer</option>
+    <option value="backend developer">Backend Developer</option>
+    <option value="mobile developer">Mobile Developer</option>
+    <option value="ai engineer">AI Engineer</option>
+    <option value="nlp engineer">NLP Engineer</option>
+    <option value="computer vision engineer">Computer Vision Engineer</option>
+    <option value="site reliability engineer">Site Reliability Engineer</option>
+    <option value="qa tester">QA Tester</option>
+    <option value="bi developer">BI Developer</option>
+    <option value="salesforce developer">Salesforce Developer</option>
+    <option value="data entry specialist">Data Entry Specialist</option>
+  </optgroup>
+  <optgroup label="── Business ──">
+    <option value="product manager">Product Manager</option>
+    <option value="project manager">Project Manager</option>
+    <option value="scrum master">Scrum Master</option>
+    <option value="accountant">Accountant</option>
+    <option value="financial analyst">Financial Analyst</option>
+    <option value="risk analyst">Risk Analyst</option>
+    <option value="hr analyst">HR Analyst</option>
+    <option value="recruiter">Recruiter</option>
+    <option value="supply chain analyst">Supply Chain Analyst</option>
+  </optgroup>
+  <optgroup label="── Design & Marketing ──">
+    <option value="digital marketer">Digital Marketer</option>
+    <option value="seo specialist">SEO Specialist</option>
+    <option value="ux designer">UX Designer</option>
+    <option value="ui designer">UI Designer</option>
+    <option value="graphic designer">Graphic Designer</option>
+    <option value="content strategist">Content Strategist</option>
+    <option value="social media manager">Social Media Manager</option>
+  </optgroup>
+  <optgroup label="── Other ──">
+    <option value="customer support">Customer Support</option>
+    <option value="customer success manager">Customer Success Manager</option>
+    <option value="paralegal">Paralegal</option>
+    <option value="medical coder">Medical Coder</option>
+  </optgroup>`;
+
+// Target role options (with entry level)
+const TARGET_ROLE_HTML = `
+  <optgroup label="── Entry Level / Student Targets ──">
+    <option value="junior software developer">Junior Software Developer</option>
+    <option value="junior data analyst">Junior Data Analyst</option>
+    <option value="junior data scientist">Junior Data Scientist</option>
+    <option value="junior ml engineer">Junior ML Engineer</option>
+    <option value="junior frontend developer">Junior Frontend Developer</option>
+    <option value="junior backend developer">Junior Backend Developer</option>
+    <option value="junior full stack developer">Junior Full Stack Developer</option>
+    <option value="junior devops engineer">Junior DevOps Engineer</option>
+    <option value="junior ux designer">Junior UX Designer</option>
+    <option value="junior product manager">Junior Product Manager</option>
+    <option value="junior financial analyst">Junior Financial Analyst</option>
+    <option value="junior business analyst">Junior Business Analyst</option>
+    <option value="entry level data analyst">Entry Level Data Analyst</option>
+    <option value="entry level software engineer">Entry Level Software Engineer</option>
+    <option value="graduate trainee">Graduate Trainee</option>
+    <option value="software intern">Software Intern</option>
+    <option value="data intern">Data Intern</option>
+    <option value="research assistant">Research Assistant</option>
+  </optgroup>
+  <optgroup label="── Tech & Data ──">
+    <option value="data analyst">Data Analyst</option>
+    <option value="data engineer">Data Engineer</option>
+    <option value="ml engineer">ML Engineer</option>
+    <option value="software engineer">Software Engineer</option>
+    <option value="devops engineer">DevOps Engineer</option>
+    <option value="data scientist">Data Scientist</option>
+    <option value="business analyst">Business Analyst</option>
+    <option value="cloud architect">Cloud Architect</option>
+    <option value="cybersecurity analyst">Cybersecurity Analyst</option>
+    <option value="full stack developer">Full Stack Developer</option>
+    <option value="frontend developer">Frontend Developer</option>
+    <option value="backend developer">Backend Developer</option>
+    <option value="mobile developer">Mobile Developer</option>
+    <option value="ai engineer">AI Engineer</option>
+    <option value="nlp engineer">NLP Engineer</option>
+    <option value="computer vision engineer">Computer Vision Engineer</option>
+    <option value="site reliability engineer">Site Reliability Engineer</option>
+    <option value="bi developer">BI Developer</option>
+    <option value="salesforce developer">Salesforce Developer</option>
+    <option value="tableau developer">Tableau Developer</option>
+    <option value="power bi developer">Power BI Developer</option>
+    <option value="data architect">Data Architect</option>
+  </optgroup>
+  <optgroup label="── Business ──">
+    <option value="product manager">Product Manager</option>
+    <option value="project manager">Project Manager</option>
+    <option value="scrum master">Scrum Master</option>
+    <option value="financial analyst">Financial Analyst</option>
+    <option value="investment banker">Investment Banker</option>
+    <option value="risk analyst">Risk Analyst</option>
+    <option value="compliance officer">Compliance Officer</option>
+    <option value="hr analyst">HR Analyst</option>
+    <option value="recruiter">Recruiter</option>
+    <option value="talent acquisition specialist">Talent Acquisition Specialist</option>
+    <option value="supply chain analyst">Supply Chain Analyst</option>
+    <option value="operations manager">Operations Manager</option>
+    <option value="sales analyst">Sales Analyst</option>
+  </optgroup>
+  <optgroup label="── Design & Marketing ──">
+    <option value="ux designer">UX Designer</option>
+    <option value="ui designer">UI Designer</option>
+    <option value="graphic designer">Graphic Designer</option>
+    <option value="product designer">Product Designer</option>
+    <option value="digital marketer">Digital Marketer</option>
+    <option value="seo specialist">SEO Specialist</option>
+    <option value="content strategist">Content Strategist</option>
+    <option value="growth hacker">Growth Hacker</option>
+    <option value="brand manager">Brand Manager</option>
+    <option value="performance marketer">Performance Marketer</option>
+    <option value="social media manager">Social Media Manager</option>
+  </optgroup>
+  <optgroup label="── Healthcare & Legal ──">
+    <option value="health informatics analyst">Health Informatics Analyst</option>
+    <option value="clinical data analyst">Clinical Data Analyst</option>
+    <option value="paralegal">Paralegal</option>
+    <option value="legal analyst">Legal Analyst</option>
+  </optgroup>
+  <optgroup label="── Other ──">
+    <option value="customer success manager">Customer Success Manager</option>
+    <option value="technical support">Technical Support</option>
+    <option value="logistics coordinator">Logistics Coordinator</option>
+  </optgroup>`;
+
+function populateDropdowns() {
+  // rec-current and risk-role: current role with students
+  ['rec-current', 'risk-role'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = CURRENT_ROLE_HTML;
+  });
+  // rec-target and trend-role: target roles
+  ['rec-target'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = TARGET_ROLE_HTML;
+  });
+  // trend-role: all roles flat
+  const tr = document.getElementById('trend-role');
+  if (tr) tr.innerHTML = CURRENT_ROLE_HTML + TARGET_ROLE_HTML;
+
+  // Set defaults
+  const rr = document.getElementById('risk-role'); if (rr) rr.value = 'data analyst';
+  const trendR = document.getElementById('trend-role'); if (trendR) trendR.value = 'ml engineer';
+  const rc = document.getElementById('rec-current'); if (rc) rc.value = 'student';
+  const rt = document.getElementById('rec-target'); if (rt) rt.value = 'junior data analyst';
+}
+
+// ═══ NAV ═══
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  const idx = ['dashboard', 'resume', 'risk', 'trends', 'recommend'].indexOf(id);
+  document.querySelectorAll('.nav-btn')[idx]?.classList.add('active');
+  if (id === 'dashboard') renderDash();
+  if (id === 'risk') renderAutoTable();
+  if (id === 'trends') loadTrend();
+}
+
+// ═══ DASHBOARD ═══
+async function renderDash() {
+  prog(20);
+  // Live trends
+  try {
+    const r = await apiFetch('/api/v1/trends/overview/all');
+    if (r && r.ok) {
+      const data = await r.json();
+      const sorted = [...(data.roles || [])].sort((a, b) => b.posting_count - a.posting_count);
+      document.getElementById('dash-growing').innerHTML = sorted.slice(0, 5).map(r =>
+        `<div class="cmp-row" onclick="goTrendsForRole('${r.role}')" style="cursor:pointer">
+          <span style="color:var(--text)">${cap(r.role)}</span>
+          <span class="badge b-green">${fmtNum(r.posting_count)} jobs ↗</span>
+        </div>`).join('');
+    }
+  } catch(e) {}
+
+  document.getElementById('dash-declining').innerHTML = [
+    {role:"Data Entry Specialist",change:"-18%"},{role:"Medical Transcriptionist",change:"-15%"},
+    {role:"Customer Support",change:"-12%"},{role:"Medical Coder",change:"-8%"},
+    {role:"Paralegal",change:"-5%"},
+  ].map(r =>
+    `<div class="cmp-row" style="cursor:pointer" onclick="goTrendsForRole('${r.role.toLowerCase()}')">
+      <span style="color:var(--text)">${r.role}</span>
+      <span class="badge b-red">${r.change} YoY</span>
+    </div>`).join('');
+
+  // Profile card
+  const s = await apiFetch('/api/v1/user/dashboard-summary');
+  if (s && s.ok) {
+    const sd = await s.json();
+    const prof = sd.profile || {};
+    const pc = document.getElementById('dash-profile-card');
+    const pcon = document.getElementById('dash-profile-content');
+    if (pc && pcon) {
+      pc.style.display = 'block';
+      pcon.innerHTML = `
+        <div class="g2">
+          <div>
+            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Current Role</div>
+            <div style="font-size:15px;font-weight:600">${cap(prof.current_role || 'Not set')}</div>
+            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:10px;margin-bottom:4px">Target Role</div>
+            <div style="font-size:15px;font-weight:600;color:var(--gold)">${cap(prof.target_role || 'Not set')}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Experience</div>
+            <div style="font-size:15px;font-weight:600">${prof.years_exp || 0} years</div>
+            <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:10px;margin-bottom:4px">Analyses Saved</div>
+            <div style="font-size:15px;font-weight:600;color:var(--purple2)">${sd.total_saved || 0}</div>
+          </div>
+        </div>
+        ${prof.current_role ? `
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-gold" onclick="goTrendsForRole('${prof.current_role}')">📈 View Trends</button>
+          <button class="btn btn-purple" onclick="quickRisk('${prof.current_role}')">⚡ Check Risk</button>
+        </div>` : `<div style="margin-top:12px;font-size:13px;color:var(--text3)">
+          Upload your resume to get started → <button class="btn btn-gold" style="margin-left:8px" onclick="showPage('resume')">Go to Parser</button>
+        </div>`}`;
+    }
+  }
+
+  // Saved analyses
+  const sa = await apiFetch('/api/v1/user/analyses');
+  if (sa && sa.ok) {
+    const sad = await sa.json();
+    const list = sad.analyses || [];
+    if (list.length > 0) {
+      document.getElementById('dash-saved-card').style.display = 'block';
+      document.getElementById('dash-saved-list').innerHTML = list.slice(0, 5).map(a =>
+        `<div class="cmp-row">
+          <div><span style="color:var(--text);font-weight:500">${a.title}</span>
+            <span class="badge b-gray" style="margin-left:6px">${a.type}</span></div>
+          <span style="font-size:11px;color:var(--text3)">${new Date(a.created_at).toLocaleDateString()}</span>
+        </div>`).join('');
+    }
+  }
+  prog(100);
+}
+
+// ═══ RESUME PARSER ═══
+let _file = null;
+
+function onFileSelect(e) {
+  _file = e.target.files[0];
+  if (_file) document.getElementById('upload-hint').textContent = '✓ ' + _file.name + ' — ready to parse';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  _file = e.dataTransfer.files[0];
+  if (_file) document.getElementById('upload-hint').textContent = '✓ ' + _file.name + ' — ready to parse';
+}
+
+async function doParse() {
+  if (!_file) { alert('Please select a file first'); return; }
+
+  // ✅ READ FORM VALUES AT PARSE TIME — this is the fix
+  const inpName  = document.getElementById('inp-name').value.trim();
+  const inpRole  = document.getElementById('inp-role').value;   // current role select value
+  const inpYears = document.getElementById('inp-years').value.trim() || '0';
+  const inpTarget = document.getElementById('inp-target').value; // target role select value
+
+  document.getElementById('parse-result').style.display = 'none';
+  document.getElementById('parse-loading').style.display = 'block';
+
+  const msgs = ['Extracting text from document…','Running NLP pipeline…',
+    'Mapping O*NET taxonomy…','Computing proficiency scores…','Analysing skill gaps vs industry…'];
+  let step = 0;
+  const iv = setInterval(() => {
+    if (step >= msgs.length) { clearInterval(iv); return; }
+    document.getElementById('parse-msg').textContent = msgs[step];
+    document.getElementById('parse-bar').style.width = ((step + 1) / msgs.length * 100) + '%';
+    step++;
+  }, 500);
+
+  try {
+    const fd = new FormData();
+    fd.append('file', _file);
+    fd.append('target_role', inpTarget);
+    const r = await fetch(API + '/api/v1/resume/parse', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + localStorage.getItem('access_token') },
+      body: fd
+    });
+    clearInterval(iv);
+    document.getElementById('parse-loading').style.display = 'none';
+    if (!r.ok) { const e = await r.json(); alert(e.detail || 'Parse failed'); return; }
+    const d = await r.json();
+
+    // ✅ ATTACH form values directly to result object — used by prefillRisk/prefillRecommend
+    d._inp_role   = inpRole;
+    d._inp_years  = inpYears;
+    d._inp_target = inpTarget;
+    d._inp_name   = inpName;
+    // Override name if user typed it
+    if (inpName) d.name = inpName;
+    // Override years from form if resume couldn't detect it
+    if (!d.years || d.years === 0) d.years = parseFloat(inpYears) || 0;
+
+    showParseResult(d, inpTarget);
+    setResumeState(d);  // ← passes exact form values downstream
+  } catch(e) {
+    clearInterval(iv);
+    document.getElementById('parse-loading').style.display = 'none';
+    alert('Parse failed: ' + e.message);
+  }
+}
+
+function showParseResult(d, targetRole) {
+  document.getElementById('parse-result').style.display = 'block';
+  document.getElementById('r-name').textContent = d.name || '—';
+  document.getElementById('r-skills-count').textContent = d.skill_count || d.skills?.length || 0;
+  document.getElementById('r-years-val').textContent = d.years || 0;
+  document.getElementById('r-conf-val').textContent = Math.round((d.confidence || 0) * 100) + '%';
+  document.getElementById('r-gaps-count').textContent = d.gap_count || d.skill_gaps?.length || 0;
+
+  const skills = d.skills || [];
+  document.getElementById('r-skills-tags').innerHTML = skills.map(s =>
+    `<span class="tag tag-skill">${s.name || s.n}</span>`).join('') ||
+    '<span style="color:var(--text3);font-size:12px">No skills detected — try a more detailed resume</span>';
+
+  document.getElementById('r-bars').innerHTML = skills.slice(0, 8).map(s => {
+    const p = Math.round((s.score || 0.5) * 100);
+    const c = p >= 75 ? 'var(--green)' : p >= 45 ? 'var(--purple2)' : 'var(--red)';
+    return `<div class="bar-row">
+      <div class="bar-meta"><span>${s.name || s.n}</span><span>${s.level || s.l}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${c}"></div></div>
+    </div>`;
+  }).join('');
+
+  // ✅ Render skill gap score against industry benchmark
+  const gap = computeGapScore(skills, targetRole);
+  renderGapScore(gap, targetRole);
+
+  // Also update skill_gaps on d from gap analysis (more accurate)
+  if (gap) {
+    d.skill_gaps = gap.missing;
+    d.gap_count = gap.missing.length;
+    document.getElementById('r-gaps-count').textContent = gap.missing.length;
+  }
+}
+
+// ═══ RISK PREDICTOR ═══
+async function renderAutoTable() {
+  const tbody = document.getElementById('auto-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text3)">Loading…</td></tr>';
+  const roles = ['data analyst','ml engineer','software engineer','data engineer','devops engineer',
+    'qa tester','data entry specialist','product manager','accountant','customer support',
+    'ai engineer','cybersecurity analyst','junior data analyst','junior software developer'];
+  try {
+    const results = await Promise.all(roles.map(role =>
+      apiFetch('/api/v1/risk/predict', { method: 'POST',
+        body: JSON.stringify({ role, years_exp: 0, n_skills: 5, education_level: 0.5 }) })
+      .then(r => r && r.ok ? r.json() : null).catch(() => null)
+    ));
+    tbody.innerHTML = results.map((d, i) => {
+      if (!d) return '';
+      const c = d.risk_category === 'Low' ? 'var(--green)' : d.risk_category === 'Medium' ?
+        'var(--amber)' : d.risk_category === 'High' ? 'var(--red)' : '#ef4444';
+      return `<tr style="cursor:pointer" onclick="quickRisk('${roles[i]}')">
+        <td style="color:var(--text)">${cap(roles[i])}</td>
+        <td style="color:${c}">${d.risk_score}%</td>
+        <td><span style="color:${c};font-weight:600">${d.risk_category}</span></td></tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text3)">Could not load</td></tr>';
+  }
+}
+
+async function predictRisk() {
+  const role  = document.getElementById('risk-role').value;
+  const years = parseFloat(document.getElementById('risk-years').value) || 0;
+  const edu   = parseFloat(document.getElementById('risk-edu').value) || 0.5;
+  const nsk   = parseInt(document.getElementById('risk-skills').value) || 5;
+  document.getElementById('risk-empty').style.display = 'none';
+  document.getElementById('risk-out').style.display = 'block';
+  document.getElementById('risk-pct').textContent = '…';
+  document.getElementById('risk-cat').textContent = 'Predicting…';
+  prog(30);
+  try {
+    const r = await apiFetch('/api/v1/risk/predict', {
+      method: 'POST',
+      body: JSON.stringify({ role, years_exp: years, n_skills: nsk, education_level: edu })
+    });
+    if (!r || !r.ok) throw new Error();
+    const d = await r.json();
+    STATE.riskRole = role;
+    STATE.riskResult = d;
+    document.getElementById('nb-risk').classList.add('show');
+    const cc = d.risk_category === 'Low' ? 'var(--green)' : d.risk_category === 'Medium' ?
+      'var(--amber)' : d.risk_category === 'High' ? 'var(--red)' : '#ef4444';
+    document.getElementById('risk-circle').style.borderColor = cc;
+    document.getElementById('risk-pct').textContent = d.risk_score + '%';
+    document.getElementById('risk-pct').style.color = cc;
+    document.getElementById('risk-cat').textContent = d.risk_category + ' Risk';
+    document.getElementById('risk-cat').style.color = cc;
+    document.getElementById('risk-viab').textContent = d.viability_index;
+    const shap = d.shap_values || {};
+    document.getElementById('shap-bars').innerHTML = Object.entries(shap)
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
+      .map(([name, val]) => {
+        const p = Math.min(100, Math.round(Math.abs(val) / 15 * 100));
+        const c = val > 0 ? 'var(--red)' : 'var(--green)';
+        return `<div class="bar-row"><div class="bar-meta"><span>${name}</span>
+          <span style="color:${c}">${val > 0 ? '+' : ''}${val.toFixed(2)}</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${c}"></div></div></div>`;
+      }).join('');
+    if (d.key_risk_factors)
+      document.getElementById('risk-factors').innerHTML = d.key_risk_factors
+        .map(f => `<div style="font-size:12px;padding:3px 0;color:var(--text2)">• ${f}</div>`).join('');
+    if (d.protective_factors)
+      document.getElementById('protect-factors').innerHTML = d.protective_factors
+        .map(f => `<div style="font-size:12px;padding:3px 0;color:var(--text2)">• ${f}</div>`).join('');
+    document.getElementById('risk-source').textContent =
+      `Model: ${d.model_version || 'formula'} · Source: ${d.onet_source || 'occupation_index'}`;
+    prog(100);
+  } catch(e) {
+    document.getElementById('risk-pct').textContent = 'Err';
+    document.getElementById('risk-cat').textContent = 'API error';
+    prog(100);
+  }
+}
+
+// ═══ JOB TRENDS ═══
+let tCI = null, sCI = null;
+Chart.defaults.color = 'rgba(184,174,208,0.7)';
+Chart.defaults.borderColor = 'rgba(46,38,80,0.6)';
+
+async function loadTrend() {
+  const role = document.getElementById('trend-role').value;
+  STATE.trendsRole = role;
+  const statsEl = document.getElementById('trend-stats');
+  if (statsEl) statsEl.innerHTML = '<div style="color:var(--text3);font-size:13px">Loading…</div>';
+  prog(20);
+  try {
+    const r = await apiFetch(`/api/v1/trends/${encodeURIComponent(role)}`);
+    if (!r || !r.ok) throw new Error();
+    const d = await r.json();
+    const g = d.yoy_growth || 0;
+    const trend = d.trend_signal || 'stable';
+    const tc = trend === 'rising' ? 'var(--green)' : trend === 'declining' ? 'var(--red)' : 'var(--amber)';
+    if (statsEl) statsEl.innerHTML = [
+      { v: (g >= 0 ? '+' : '') + Math.round(g * 100) + '%', l: 'YoY Growth', c: tc },
+      { v: '₹' + (d.current_salary_lpa || '—') + 'L', l: 'Current Salary', c: 'var(--purple2)' },
+      { v: cap(trend), l: 'Trend', c: tc },
+      { v: fmtNum(d.current_postings || 0), l: 'Job Postings', c: 'var(--gold)' },
+    ].map(s => `<div class="stat-card"><div class="stat-val" style="color:${s.c}">${s.v}</div><div class="stat-lbl">${s.l}</div></div>`).join('');
+
+    const hist = (d.history || []).slice(-6), fore = d.forecast || [];
+    const hL = hist.map(h => String(h.year)), fL = fore.map(f => String(f.year) + '▶');
+    const hV = hist.map(h => h.postings_index), fV = fore.map(f => f.postings_index);
+    const hS = hist.map(h => +((h.median_salary || 0) / 100000).toFixed(1));
+    const fS = fore.map(f => +(((f.median_salary || 0) || (f.salary_lpa || 0) * 100000) / 100000).toFixed(1));
+    const allL = [...hL, ...fL];
+
+    if (tCI) tCI.destroy();
+    tCI = new Chart(document.getElementById('trend-chart'), {
+      type: 'line', data: { labels: allL, datasets: [
+        { label: 'Historical', data: [...hV, ...Array(fL.length).fill(null)], borderColor: 'rgba(124,92,191,0.8)', tension: 0.4, pointRadius: 4, borderWidth: 2 },
+        { label: 'Forecast', data: [...Array(hL.length).fill(null), ...fV], borderColor: tc, tension: 0.4, pointRadius: 4, borderDash: [6, 3], borderWidth: 2.5 },
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        scales: { x: { grid: { color: 'rgba(46,38,80,0.5)' } }, y: { grid: { color: 'rgba(46,38,80,0.5)' }, title: { display: true, text: 'Postings' } } } }
+    });
+
+    if (sCI) sCI.destroy();
+    sCI = new Chart(document.getElementById('salary-chart'), {
+      type: 'bar', data: { labels: allL, datasets: [
+        { label: 'Salary (LPA)', data: [...hS, ...fS],
+          backgroundColor: [...hL.map(() => 'rgba(124,92,191,0.4)'), ...fL.map(() => 'rgba(212,168,71,0.4)')],
+          borderColor: [...hL.map(() => 'rgba(124,92,191,0.8)'), ...fL.map(() => 'rgba(212,168,71,0.8)')], borderWidth: 1 }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        scales: { x: { grid: { color: 'rgba(46,38,80,0.5)' } },
+          y: { grid: { color: 'rgba(46,38,80,0.5)' }, ticks: { callback: v => '₹' + v + 'L' } } } }
+    });
+
+    const src = document.getElementById('trend-source');
+    if (src) src.textContent = `Source: ${d.data_source || 'live'} · ${d.fetched_at ? new Date(d.fetched_at).toLocaleTimeString() : 'just now'}`;
+    const sum = document.getElementById('trend-summary');
+    if (sum) sum.textContent = d.summary || `${cap(role)} shows a ${trend} trend with ${(g >= 0 ? '+' : '') + Math.round(g * 100)}% YoY growth.`;
+    prog(100);
+  } catch(e) {
+    if (statsEl) statsEl.innerHTML = '<div style="color:var(--red);font-size:13px">Could not load live data</div>';
+    prog(100);
+  }
+}
+
+// ═══ RECOMMENDATIONS ═══
+let salCI = null;
+
+async function generateRoadmap() {
+  const cur = document.getElementById('rec-current').value;
+  const tgt = document.getElementById('rec-target').value || 'junior data analyst';
+  const gapsRaw = document.getElementById('rec-gaps').value || '';
+  const gaps = gapsRaw
+    ? gapsRaw.split(',').map(s => s.trim()).filter(Boolean)
+    : (STATE.resume?.skill_gaps || ['python', 'sql', 'machine learning', 'docker']);
+
+  document.getElementById('roadmap-out').style.display = 'block';
+  document.getElementById('roadmap-out').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('rec-stats').innerHTML = '<div style="color:var(--text3)">Generating roadmap…</div>';
+  prog(20);
+
+  try {
+    const r = await apiFetch('/api/v1/recommend/roadmap', {
+      method: 'POST',
+      body: JSON.stringify({ current_role: cur, target_role: tgt, skill_gaps: gaps, years_exp: STATE.resume?.years || 0 })
+    });
+    if (!r || !r.ok) throw new Error();
+    const d = await r.json();
+    document.getElementById('nb-recommend').classList.add('show');
+
+    document.getElementById('rec-stats').innerHTML = [
+      { v: d.total_months + ' mo', l: 'Roadmap', c: 'var(--gold)' },
+      { v: (d.courses || []).length, l: 'Courses', c: 'var(--purple2)' },
+      { v: d.live_course_count || 0, l: 'Live', c: 'var(--green)' },
+      { v: (d.pivot_roles || []).length, l: 'Pivot Roles', c: 'var(--amber)' },
+    ].map(s => `<div class="stat-card"><div class="stat-val" style="color:${s.c}">${s.v}</div><div class="stat-lbl">${s.l}</div></div>`).join('');
+
+    const cols = ['var(--gold)', 'var(--purple2)', 'var(--green)'];
+    document.getElementById('roadmap-phases').innerHTML = (d.phases || []).map((p, i) =>
+      `<div class="timeline-item">
+        <div class="timeline-dot" style="background:${cols[i] || 'var(--border2)'}"></div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:2px;color:${cols[i]}">${p.label}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:5px">${p.theme}</div>
+        <div>${(p.courses || []).map(c => `<span class="tag tag-gold">${c}</span>`).join('')}</div>
+      </div>`).join('');
+
+    document.getElementById('course-tbody').innerHTML = (d.courses || []).map(c => {
+      const ph = c.phase || 1, pb = ph === 1 ? 'b-gold' : ph === 2 ? 'b-purple' : 'b-green';
+      const type = c.content_type === 'video' ? '🎬 Video' : '📚 Course';
+      return `<tr><td style="color:var(--text)"><strong>${c.title}</strong>${c.url ? ` <a href="${c.url}" target="_blank" style="color:var(--gold);font-size:11px">↗</a>` : ''}</td>
+        <td><span class="badge b-gray">${c.platform}</span></td>
+        <td style="color:var(--text3)">${type}</td>
+        <td style="color:var(--text3)">${c.workload || '—'}</td>
+        <td style="color:var(--green);font-weight:600">+${c.salary_lift_pct || 0}%</td>
+        <td><span class="badge ${pb}">P${ph}</span></td></tr>`;
+    }).join('');
+
+    const sp = d.salary_projection || {};
+    const salPts = [sp.now, sp['6mo'], sp['12mo'], sp['18mo']]
+      .map(v => parseFloat((v || '0').replace(/[^0-9.]/g, '')) || 0);
+    if (salCI) salCI.destroy();
+    salCI = new Chart(document.getElementById('sal-chart'), {
+      type: 'line',
+      data: { labels: ['Now', '6 mo', '12 mo', '18 mo'], datasets: [
+        { label: 'Salary (LPA)', data: salPts, borderColor: 'var(--gold)',
+          backgroundColor: 'rgba(212,168,71,0.08)', tension: 0.5, fill: true,
+          pointRadius: 5, borderWidth: 2.5, pointBackgroundColor: 'var(--gold)' }
+      ]},
+      options: { responsive: true, maintainAspectRatio: false,
+        scales: { x: { grid: { display: false } },
+          y: { grid: { color: 'rgba(46,38,80,0.5)' }, ticks: { callback: v => '₹' + v + 'L' } } } }
+    });
+
+    document.getElementById('sal-stages').innerHTML = [
+      { st: 'Current', sl: sp.now || '—', b: 'b-gray' },
+      { st: '6 months', sl: sp['6mo'] || '—', b: 'b-amber' },
+      { st: '12 months', sl: sp['12mo'] || '—', b: 'b-blue' },
+      { st: '18 months', sl: sp['18mo'] || '—', b: 'b-gold' },
+    ].map(s => `<div class="cmp-row"><span style="font-size:12px">${s.st}</span><span class="badge ${s.b}">${s.sl}</span></div>`).join('');
+
+    document.getElementById('certs-list').innerHTML = (d.certifications || []).map(c =>
+      `<div class="role-card"><h4><a href="${c.url}" target="_blank" style="color:var(--gold)">${c.title} ↗</a></h4>
+        <div style="font-size:12px;color:var(--text3);display:flex;justify-content:space-between">
+          <span>${c.provider}${c.workload ? ' · ' + c.workload : ''}</span>
+          <span class="badge b-green">+${c.salary_lift_pct || 0}%</span></div></div>`
+    ).join('') || '<div style="color:var(--text3);font-size:13px;padding:8px">Loading certifications…</div>';
+
+    document.getElementById('pivot-list').innerHTML = (d.pivot_roles || []).map(p =>
+      `<div class="role-card">
+        <h4>${p.role}${p.url ? ` <a href="${p.url}" target="_blank" style="color:var(--gold);font-size:11px">↗</a>` : ''}</h4>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:5px">${p.months} months · ${p.salary}</div>
+        <div class="feas-bar"><div style="height:100%;width:${(p.feasibility||0)*100}%;background:var(--gold);border-radius:3px"></div></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">Feasibility: ${Math.round((p.feasibility||0)*100)}%</div>
+        <button class="btn btn-outline" style="margin-top:8px;font-size:11px;padding:4px 10px"
+          onclick="goTrendsForRole('${p.role.toLowerCase()}')">📈 Trends</button>
+      </div>`
+    ).join('') || '<div style="color:var(--text3);font-size:13px;padding:8px">Add O*NET credentials to see pivot roles</div>';
+
+    document.getElementById('github-list').innerHTML = (d.github_tools || []).length > 0
+      ? `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">` +
+        (d.github_tools || []).map(r =>
+          `<div class="card-sm">
+            <div style="font-weight:600;font-size:13px;margin-bottom:3px">
+              <a href="${r.url}" target="_blank" style="color:var(--gold)">${r.name} ↗</a></div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:4px">${r.description || ''}</div>
+            <div style="font-size:11px;color:var(--text2)">⭐ ${fmtNum(r.stars)} · ${r.language || '—'}</div>
+          </div>`).join('') + '</div>'
+      : '<div style="color:var(--text3);font-size:13px;padding:8px">No repos found for this role</div>';
+
+    prog(100);
+  } catch(e) {
+    document.getElementById('rec-stats').innerHTML = '<div style="color:var(--red)">Could not load roadmap — check server</div>';
+    prog(100);
+  }
+}
+
+// ═══ AUTH ═══
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) =>
+    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register')));
+  document.getElementById('tab-login').style.display   = tab === 'login'    ? '' : 'none';
+  document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('auth-err').style.display = 'none';
+  document.getElementById('auth-ok').style.display  = 'none';
+}
+
+function showAuthErr(msg) {
+  const el = document.getElementById('auth-err');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('auth-ok').style.display = 'none';
+}
+
+function showAuthOk(msg) {
+  const el = document.getElementById('auth-ok');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('auth-err').style.display = 'none';
+}
+
+function initAuth() {
+  const token = localStorage.getItem('access_token');
+  if (token) {
+    fetch(API + '/api/v1/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => { if (r.ok) return r.json(); throw new Error(); })
+      .then(user => showApp(user))
+      .catch(() => { localStorage.clear(); showOverlay(); });
+  } else {
+    showOverlay();
+  }
+}
+
+function showOverlay() { document.getElementById('auth-overlay').style.display = 'flex'; }
+function hideOverlay() { document.getElementById('auth-overlay').style.display = 'none'; }
+
+function showApp(user) {
+  STATE.user = user;
+  hideOverlay();
+  document.getElementById('nav-right').style.display = 'flex';
+  document.getElementById('nav-username').textContent = user.name || user.email;
+  populateDropdowns();
+  showPage('dashboard');
+}
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  if (!email || !pass) { showAuthErr('Please enter email and password.'); return; }
+  try {
+    const fd = new FormData();
+    fd.append('username', email); fd.append('password', pass);
+    const r = await fetch(API + '/api/v1/auth/login', { method: 'POST', body: fd });
+    const d = await r.json();
+    if (!r.ok) { showAuthErr(d.detail || 'Login failed.'); return; }
+    localStorage.setItem('access_token', d.access_token);
+    if (d.refresh_token) localStorage.setItem('refresh_token', d.refresh_token);
+    showApp(d.user || { name: email, email });
+  } catch(e) { showAuthErr('Server error. Is the backend running?'); }
+}
+
+async function doRegister() {
+  const name  = document.getElementById('r-name').value.trim();
+  const email = document.getElementById('r-email').value.trim();
+  const pass  = document.getElementById('r-pass').value;
+  if (!name || !email || !pass) { showAuthErr('All fields are required.'); return; }
+  if (pass.length < 8) { showAuthErr('Password must be at least 8 characters.'); return; }
+  try {
+    const r = await fetch(API + '/api/v1/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password: pass })
+    });
+    const d = await r.json();
+    if (!r.ok) { showAuthErr(d.detail || 'Registration failed.'); return; }
+    // ✅ Show success and redirect to login — do NOT auto-login
+    showAuthOk('✓ Account created successfully! Please sign in.');
+    setTimeout(() => {
+      switchTab('login');
+      document.getElementById('l-email').value = email;
+      document.getElementById('l-pass').focus();
+    }, 1200);
+  } catch(e) { showAuthErr('Server error. Is the backend running?'); }
+}
+
+function doLogout() {
+  const rt = localStorage.getItem('refresh_token');
+  if (rt) fetch(API + '/api/v1/auth/logout', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: rt })
+  }).catch(() => {});
+  localStorage.clear();
+  STATE.user = null; STATE.resume = null; STATE.riskResult = null;
+  document.getElementById('nav-right').style.display = 'none';
+  document.querySelectorAll('.nav-badge').forEach(b => b.classList.remove('show'));
+  showOverlay();
+}
+
+// ═══ INIT ═══
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  const dot = document.getElementById('live-dot');
+  const lbl = document.getElementById('live-lbl');
+  if (typeof liveConnect !== 'undefined') {
+    liveConnect.connectTrends(() => { dot.classList.add('on'); lbl.textContent = 'Live'; });
+  } else {
+    lbl.textContent = 'Server';
+  }
+});
+</script>
+</body>
+</html>
